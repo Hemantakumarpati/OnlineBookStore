@@ -16,7 +16,7 @@ pipeline {
         sh "mvn package"
       }
     }
-    stage('Sonar'){
+    /*stage('Sonar'){
         try {
             sh "mvn sonar:sonar"
         } catch(error){
