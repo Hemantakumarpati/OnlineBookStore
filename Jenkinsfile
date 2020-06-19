@@ -22,8 +22,8 @@ pipeline {
         } catch(error){
             echo "The sonar server could not be reached ${error}"
         }
-     }
-   stage('Building image') {
+     }*/
+   /*stage('Building image') {
       steps{
         script {
           dockerImage = docker.build registry + ":$BUILD_NUMBER"
