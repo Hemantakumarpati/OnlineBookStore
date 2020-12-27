@@ -1,10 +1,6 @@
 pipeline {
-  environment {
-    registry = "hemantakumarpati/onlinebookstore"
-    registryCredential = 'dockeruser'
-    dockerImage = ''
- }
-  agent any
+   agent any
+
   stages {
     stage('Cloning Git') {
       steps {
@@ -16,41 +12,29 @@ pipeline {
         sh "mvn package"
       }
     }
-    /*stage('Sonar'){
-        try {
-            sh "mvn sonar:sonar"
-        } catch(error){
-            echo "The sonar server could not be reached ${error}"
-        }
-     }*/
-   stage('Building image') {
-      steps{
-        script {
-          dockerImage = docker.build registry + ":$BUILD_NUMBER"
+    stage('Build result') {
+      steps {
+        sh "docker build -t hemantakumarpati/onlinebookstore:${env.BUILD_NUMBER} ."
+      }
+    } 
+   stage('Push result image') {
+      steps {
+        withCredentials([usernamePassword(credentialsId: 'dockeruser', passwordVariable: 'dockerHubPassword', usernameVariable: 'dockerHubUser')]) {
+          sh "docker login -u ${env.dockerHubUser} -p ${env.dockerHubPassword}"
+          sh "docker push hemantakumarpati/onlinebookstore:${env.BUILD_NUMBER}"
         }
       }
     }
-    /*stage('Test Image' ) {
-                agent {
-                docker { image 'hemantakumarpati/onlinebookstore:$BUILD_NUMBER' }
+    stage('Deploy on test') {
+         steps {
+            script {
+               env.PIPELINE_NAMESPACE = "default"
+               //kubernetesDeploy(kubeconfigId: 'mykubeconfig', configs: 'k8s-specifications/')
+                withKubeConfig([credentialsId: 'kubeconfig', serverUrl: 'https://10.128.0.31:6443', configs: 'k8s-specifications/']) {
+                //sh 'kubectl apply -f my-kubernetes-directory'
             }
-            steps {
-                sh 'docker --version'
-            }
-        }*/
-    stage('Deploy Image') {
-      steps{
-        script {
-          //withCredentials([usernamePassword( credentialsId: 'dockeruser', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-          //docker.withRegistry('https://registry.hub.docker.com', 'dockeruser') {
-          //sh "docker login -u ${USERNAME} -p ${PASSWORD}"
-          //dockerImage.push("$BUILD_NUMBER")
-          //dockerImage.push("latest")
-          sh "/home/hemant_pati/dockerpush.sh ${BUILD_NUMBER}"
-            //}
-       // }
+         }
       }
-    }
-  }
- }
+                                }
+}
 }
