@@ -18,7 +18,7 @@ pipeline {
                // Run integration test
                steps {
                    script {
-                       def mvnHome = tool 'Maven 3.6.3'
+                       def mvnHome = tool '3.6.3'
                        if (isUnix()) {
                            // just to trigger the integration test without unit testing
                            sh "'${mvnHome}/bin/mvn'  verify -Dunit-tests.skip=true"
