@@ -1,7 +1,7 @@
 pipeline {
    agent any
   tools {
-    maven 'M3'
+    maven '3.6.3'
   }
   stages {
     stage('Cloning Git') {
