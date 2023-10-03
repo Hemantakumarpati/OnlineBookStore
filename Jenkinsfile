@@ -1,5 +1,10 @@
 pipeline {
    agent any
+environment { 
+   NAME = "myapp"
+   VERSION = "${env.BUILD_ID}-${env.GIT_COMMIT}"
+   IMAGE = "${NAME}:${VERSION}"
+}   
   tools {
     maven '3.6.3'
   }
@@ -33,8 +38,12 @@ pipeline {
            }
    stage('Build result') {
      steps {
-      sh "docker build -t hemantakumarpati/onlinebookstore:${env.BUILD_NUMBER} ."
-      }
+            echo "Running ${VERSION} on ${env.JENKINS_URL}"
+            git branch: "${BRANCH}",  .....
+            echo "for brnach ${env.BRANCH_NAME}"
+            sh "docker build -t ${NAME} ."
+            sh "docker tag ${NAME}:latest ${IMAGE_REPO}/${NAME}:${VERSION}"
+        }
     } 
    stage('Push result image') {
       steps {
