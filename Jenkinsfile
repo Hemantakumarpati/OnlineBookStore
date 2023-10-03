@@ -4,7 +4,7 @@ environment {
    NAME = "onlinebookstore"
    VERSION = "${env.BUILD_ID}-${env.GIT_COMMIT}"
    IMAGE = "${NAME}:${VERSION}"
-   IMAGE_REPO="hub.docker.com/hemantakumarpati"
+   IMAGE_REPO="hemantakumarpati"
    
 }   
   tools {
