@@ -59,16 +59,5 @@ pipeline {
                 }
         }
     }  
-   // stage('Deploy on test') {
-   //      steps {
-   //         script {
-   //            env.PIPELINE_NAMESPACE = "default"
-               //kubernetesDeploy(kubeconfigId: 'mykubeconfig', configs: 'k8s-specifications/')
-   //             withKubeConfig([credentialsId: 'kubeconfig', serverUrl: 'https://10.128.0.31:6443', configs: 'k8s-specifications/']) {
-   //             //sh 'kubectl apply -f my-kubernetes-directory'
-     //       }
-      //   }
-     // }
-                               // }
-//}
+}
 }
