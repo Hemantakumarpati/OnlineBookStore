@@ -51,7 +51,7 @@ environment {
       steps {
         withCredentials([usernamePassword(credentialsId: 'dockeruser', passwordVariable: 'dockerHubPassword', usernameVariable: 'dockerHubUser')]) {
           sh "docker login -u ${env.dockerHubUser} -p ${env.dockerHubPassword}"
-          sh "docker push hemantakumarpati/onlinebookstore:${env.BUILD_NUMBER}"
+          sh "docker push ${IMAGE_REPO}/${NAME}:${VERSION}"
         }
       }
     }
