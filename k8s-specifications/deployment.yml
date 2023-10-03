@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: onlinebookstore-container
-        image: hemantakumarpati/onlinebookstore:${env.BUILD_NUMBER}
+        image: ${IMAGE_REPO}/${NAME}:${VERSION}
         resources:
           requests:
             cpu: 100m
