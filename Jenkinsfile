@@ -48,6 +48,17 @@ pipeline {
         }
       }
     }
+
+   stage('Integrate Jenkins with EKS Cluster and Deploy App') {
+            steps {
+                withAWS(credentials: 'aws', region: 'us-east-2') {
+                  script {
+                    sh ('aws eks update-kubeconfig --name poc-cluster --region us-east-2')
+                    sh "kubectl apply -f k8s-specifications/"
+                }
+                }
+        }
+    }  
    // stage('Deploy on test') {
    //      steps {
    //         script {
