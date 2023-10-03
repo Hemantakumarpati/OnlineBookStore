@@ -4,6 +4,8 @@ environment {
    NAME = "onlinebookstore"
    VERSION = "${env.BUILD_ID}-${env.GIT_COMMIT}"
    IMAGE = "${NAME}:${VERSION}"
+   IMAGE_REPO="hub.docker.com/hemantakumarpati"
+   
 }   
   tools {
     maven '3.6.3'
