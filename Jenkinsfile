@@ -62,7 +62,7 @@ environment {
                 withAWS(credentials: 'aws', region: 'us-east-2') {
                   script {
                     sh ('aws eks update-kubeconfig --name poc-cluster --region us-east-2')
-                    sh "echo ${IMAGE_REPO}/${NAME}:${VERSION}"
+                    sh "echo ${IMAGE_URL}/${IMAGE_REPO}/${NAME}:${VERSION}"
                     //sh 'envsubst < k8s-specifications/|kubectl apply -f -'
                     sh 'kubectl set image deployments/onlinebookstore ${IMAGE_URL}/${IMAGE_REPO}/${NAME}:${VERSION}'
                     sh "kubectl apply -f k8s-specifications/"
