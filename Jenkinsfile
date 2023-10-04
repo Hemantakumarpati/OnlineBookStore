@@ -62,7 +62,7 @@ environment {
                   script {
                     sh ('aws eks update-kubeconfig --name poc-cluster --region us-east-2')
                     sh "kubectl apply -f k8s-specifications/"
-                    sh 'kubectl set image deployments/onlinebookstore hub.docker.com/${IMAGE_REPO}/${NAME}:${VERSION}'
+                    sh 'kubectl set image deployments/onlinebookstore $INSTANSE_NAME=hub.docker.com/${IMAGE_REPO}/${NAME}:${VERSION}'
                 }
                 }
         }
