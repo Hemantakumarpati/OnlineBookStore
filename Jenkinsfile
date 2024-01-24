@@ -9,7 +9,7 @@ environment {
    
 }   
   tools {
-     maven '3.6.3'
+     maven '3.9.6'
   }
   stages {
     stage('Cloning Git') {
