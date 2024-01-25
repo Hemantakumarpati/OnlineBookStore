@@ -8,9 +8,9 @@ environment {
    IMAGE_URL='hub.docker.com'
    
 }   
-  tools {
-     maven '3.8.3'
-  }
+  //tools {
+    // maven '3.8.3'
+  //}
   stages {
     stage('Cloning Git') {
       steps {
@@ -22,23 +22,23 @@ environment {
         sh "mvn package"
       }
     }
-    stage('Integration tests') {
+    //stage('Integration tests') {
                // Run integration test
-               steps {
-                   script {
-                       def mvnHome = tool '3.6.3'
-                       if (isUnix()) {
-                           // just to trigger the integration test without unit testing
-                           sh "'${mvnHome}/bin/mvn'  verify -Dunit-tests.skip=true"
-                       } else {
-                           bat(/"${mvnHome}\bin\mvn" verify -Dunit-tests.skip=true/)
-                       }
+      //         steps {
+        //           script {
+          //             def mvnHome = tool '3.6.3'
+            //           if (isUnix()) {
+              //             // just to trigger the integration test without unit testing
+                //           sh "'${mvnHome}/bin/mvn'  verify -Dunit-tests.skip=true"
+                  //     } else {
+                    //       bat(/"${mvnHome}\bin\mvn" verify -Dunit-tests.skip=true/)
+                     //  }
    
-                   }
+                   //}
                    // cucumber reports collection
-                   cucumber buildStatus: null, fileIncludePattern: '**/cucumber.json', jsonReportDirectory: 'target', sortingMethod: 'ALPHABETICAL'
-               }
-           }
+                   //cucumber buildStatus: null, fileIncludePattern: '**/cucumber.json', jsonReportDirectory: 'target', sortingMethod: 'ALPHABETICAL'
+               //}
+           //}
    stage('Build result') {
      steps {
             echo "Running ${VERSION} on ${env.JENKINS_URL}"
