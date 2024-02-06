@@ -58,7 +58,7 @@ environment {
 
    stage('Integrate Jenkins with EKS Cluster and Deploy App') {
             steps {
-                withAWS(credentials: 'aws', region: 'us-east-2') {
+                withAWS(credentials: 'aws', region: 'us-east-1') {
                   script {
                     sh ('aws eks update-kubeconfig --name poc-cluster --region us-east-1')
                     sh "echo ${IMAGE_URL}/${IMAGE_REPO}/${NAME}:${VERSION}"
