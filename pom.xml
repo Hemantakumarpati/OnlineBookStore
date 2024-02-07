@@ -19,6 +19,13 @@
 			<version>4.10</version>
 		</dependency>
 	</dependencies>
+    <plugins>
+      <plugin>
+  <groupId>org.apache.maven.plugins</groupId>
+  <artifactId>maven-war-plugin</artifactId>
+  <version>3.8.4</version>
+</plugin>
+    </plugins>
 	<build>
 		<finalName>OnlineBookStore</finalName>
 	</build>
