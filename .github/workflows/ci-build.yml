@@ -53,7 +53,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Build Docker Image
+      # Build Docker Image 
       - name: Build Docker Image
         run: |
           docker build -t $IMAGE_REPO/$IMAGE .
