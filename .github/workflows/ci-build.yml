@@ -1,26 +1,25 @@
-name: Build and Push Docker Image
+name: Build, Push and Deploy to GKE
 
 on:
   push:
     branches:
       - master
+
 env:
-    NAME: onlinebookstore
-    IMAGE_REPO: hemantakumarpati
-    IMAGE_URL: hub.docker.com
-    GKE_CLUSTER_NAME: my-gke-cluster
-    GKE_CLUSTER_LOCATION: asia-south1-a
-    K8S_DEPLOYMENT_NAME: onlinebookstore
-    K8S_NAMESPACE: default
-    K8S_MANIFESTS_PATH: k8s-specifications/
+  NAME: onlinebookstore
+  IMAGE_REPO: hemantakumarpati
+  IMAGE_URL: hub.docker.com
+  GKE_CLUSTER_NAME: my-gke-cluster
+  GKE_CLUSTER_LOCATION: asia-south1-a
+  K8S_NAMESPACE: default
+  K8S_MANIFESTS_PATH: k8s-specifications/
+
 jobs:
   build-and-push:
     runs-on: self-hosted
 
-
-
     steps:
-      # Checkout Code  
+      # Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
@@ -47,7 +46,7 @@ jobs:
           sudo apt update
           sudo apt install -y maven
 
-      # Build WAR
+      # Build WAR file
       - name: Build WAR
         run: mvn clean package
 
@@ -69,8 +68,9 @@ jobs:
   deploy:
     needs: build-and-push
     runs-on: self-hosted
+
     steps:
-      # Checkout repo
+      # Checkout repository (needed for YAML files)
       - uses: actions/checkout@v3
 
       # Authenticate to GCP
@@ -79,21 +79,27 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      # Get GKE credentials
+      # Set up GKE credentials
       - name: Set up GKE
         uses: google-github-actions/get-gke-credentials@v1
         with:
           cluster_name: ${{ env.GKE_CLUSTER_NAME }}
           location: ${{ env.GKE_CLUSTER_LOCATION }}
           credentials: ${{ secrets.GCP_SA_KEY }}
-      # Apply Kubernetes manifests
-      - name: Apply manifests
-        run: kubectl apply -f ${{ env.K8S_MANIFESTS_PATH }} --namespace ${{ env.K8S_NAMESPACE }}          
 
-      # Update deployment image
-      - name: Update deployment image
+      # Replace placeholders in deployment YAML
+      - name: Replace placeholders in deployment.yaml
         run: |
-          kubectl set image deployment/${{ env.K8S_DEPLOYMENT_NAME }} \
-            ${{ env.NAME }}=${{ env.IMAGE_REPO }}/${{ env.IMAGE }} --namespace ${{ env.K8S_NAMESPACE }}
+          find ${{ env.K8S_MANIFESTS_PATH }} -type f -name "*.yaml" -exec sed -i \
+          -e "s|\${IMAGE_URL}|${{ env.IMAGE_URL }}|g" \
+          -e "s|\${IMAGE_REPO}|${{ env.IMAGE_REPO }}|g" \
+          -e "s|\${NAME}|${{ env.NAME }}|g" \
+          -e "s|\${VERSION}|${{ env.VERSION }}|g" {} \;
 
+      # Apply manifests to GKE
+      - name: Apply manifests
+        run: kubectl apply -f ${{ env.K8S_MANIFESTS_PATH }} --namespace ${{ env.K8S_NAMESPACE }}
 
+      # Optional: Wait for deployment rollout
+      - name: Wait for rollout
+        run: kubectl rollout status deployment/${{ env.NAME }} --namespace ${{ env.K8S_NAMESPACE }}
