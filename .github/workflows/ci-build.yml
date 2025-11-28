@@ -35,8 +35,8 @@ jobs:
           FULL_IMAGE="${IMAGE_REPO}/${NAME}:${VERSION}"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "FULL_IMAGE=$FULL_IMAGE" >> $GITHUB_ENV
-          echo "::set-output name=VERSION::$VERSION"
-          echo "::set-output name=FULL_IMAGE::$FULL_IMAGE"
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "FULL_IMAGE=$FULL_IMAGE" >> $GITHUB_OUTPUT
 
       # Setup Java
       - name: Set up Java
@@ -86,6 +86,9 @@ jobs:
     steps:
       # Checkout repo
       - uses: actions/checkout@v3
+
+      - name: Debug Image Name
+        run: echo "Deploying image ${{ env.FULL_IMAGE }}"
 
       # Authenticate to GCP
       - name: Authenticate to GCP
