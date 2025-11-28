@@ -11,7 +11,15 @@ jobs:
 
     env:
       NAME: onlinebookstore
+      VERSION: ${{ github.run_number }}-${{ github.sha }}
+      IMAGE: ${{ env.NAME }}:${{ env.VERSION }}
       IMAGE_REPO: hemantakumarpati
+      IMAGE_URL: hub.docker.com
+      GKE_CLUSTER_NAME: my-gke-cluster
+      GKE_CLUSTER_LOCATION: asia-south1-a
+      K8S_DEPLOYMENT_NAME: onlinebookstore
+      K8S_NAMESPACE: default
+      K8S_MANIFESTS_PATH: k8s-specifications/
 
     steps:
 
@@ -84,9 +92,11 @@ jobs:
           location: asia-south1-a            # zone or region
           credentials: ${{ secrets.GCP_SA_KEY }}
 
-      # Deploy to Kubernetes
-      - name: Deploy to GKE
+      - name: Update deployment image
         run: |
-          kubectl apply -f k8s-specifications/
-          kubectl set image deployments/onlinebookstore onlinebookstore-container=${IMAGE_REPO}/${NAME}:${VERSION}
+           kubectl set image deployment/${{ env.K8S_DEPLOYMENT_NAME }} \
+             ${{ env.NAME }}=${{ env.IMAGE_REPO }}/${{ env.IMAGE }}
+
+      - name: Apply manifests
+        run: kubectl apply -f ${{ env.K8S_MANIFESTS_PATH }}
         
