@@ -1,4 +1,4 @@
-name: Build, Push and Deploy to GKE
+name: Build, Push, and Deploy to GKE
 
 on:
   push:
@@ -18,11 +18,9 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      # Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Set VERSION and IMAGE
       - name: Set image version
         id: vars
         run: |
@@ -32,35 +30,29 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "IMAGE=${{ env.NAME }}:$VERSION" >> $GITHUB_ENV
 
-      # Set up Java
       - name: Set up Java
         uses: actions/setup-java@v3
         with:
           distribution: temurin
           java-version: '17'
 
-      # Install Maven
       - name: Install Maven
         run: |
           sudo apt update
           sudo apt install -y maven
 
-      # Build WAR file
       - name: Build WAR
         run: mvn clean package
 
-      # Docker login
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Build Docker image
       - name: Build Docker Image
         run: docker build -t $IMAGE_REPO/$IMAGE .
 
-      # Push Docker image
       - name: Push Docker Image
         run: docker push $IMAGE_REPO/$IMAGE
 
@@ -69,16 +61,13 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      # Checkout repo (needed for YAML files)
       - uses: actions/checkout@v3
 
-      # Authenticate to GCP
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      # Set up GKE credentials
       - name: Set up GKE
         uses: google-github-actions/get-gke-credentials@v1
         with:
@@ -86,15 +75,13 @@ jobs:
           location: ${{ env.GKE_CLUSTER_LOCATION }}
           credentials: ${{ secrets.GCP_SA_KEY }}
 
-      # Replace placeholders in deployment YAML with actual image
       - name: Replace placeholders in deployment.yaml
         run: |
           find ${{ env.K8S_MANIFESTS_PATH }} -type f -name "*.yaml" -exec sed -i \
           -e "s|\${IMAGE_REPO}/${NAME}:${VERSION}|${{ env.IMAGE_REPO }}/${{ env.NAME }}:${{ env.VERSION }}|g" {} \;
 
-      # Apply manifests to GKE
-      - name: Apply manifests
-        run: kubectl apply -f ${{ env.K8S_MANIFESTS_PATH }} --namespace ${{ env.K8S_NAMESPACE }}
       - name: Apply manifests
         run: kubectl apply -f ${{ env.K8S_MANIFESTS_PATH }} --namespace ${{ env.K8S_NAMESPACE }}
 
+      - name: Wait for rollout
+        run: kubectl rollout status deployment/${{ env.NAME }} --namespace ${{ env.K8S_NAMESPACE }}
