@@ -17,7 +17,8 @@ spec:
       containers:
         - name: onlinebookstore-container
           # Placeholder for GitHub Actions to replace
-          image: ${IMAGE_REPO}/${NAME}:${VERSION}
+          # image: ${IMAGE_REPO}/${NAME}:${VERSION}
+          image: hemantakumarpati/onlinebookstore:20-517f393
           imagePullPolicy: Always
           resources:
             requests:
