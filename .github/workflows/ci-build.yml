@@ -18,11 +18,11 @@ jobs:
   build-and-push:
     runs-on: self-hosted
     steps:
-      # Checkout code
+      # 1️⃣ Checkout code
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Set image version
+      # 2️⃣ Set image version
       - name: Set image version
         id: vars
         run: |
@@ -30,38 +30,37 @@ jobs:
           SHORT_SHA=${GITHUB_SHA::7}
           VERSION="${BUILD_ID}-${SHORT_SHA}"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "IMAGE=${{ env.NAME }}:$VERSION" >> $GITHUB_ENV
           echo "FULL_IMAGE=${{ env.IMAGE_REPO }}/${{ env.NAME }}:$VERSION" >> $GITHUB_ENV
 
-      # Setup Java
+      # 3️⃣ Setup Java
       - name: Set up Java
         uses: actions/setup-java@v3
         with:
           distribution: temurin
           java-version: '17'
 
-      # Install Maven
+      # 4️⃣ Install Maven
       - name: Install Maven
         run: |
           sudo apt update
           sudo apt install -y maven
 
-      # Build WAR
+      # 5️⃣ Build WAR
       - name: Build WAR
         run: mvn clean package
 
-      # Docker login
+      # 6️⃣ Docker login
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Build Docker image
+      # 7️⃣ Build Docker image
       - name: Build Docker image
         run: docker build -t ${{ env.FULL_IMAGE }} .
 
-      # Push Docker image
+      # 8️⃣ Push Docker image
       - name: Push Docker image
         run: docker push ${{ env.FULL_IMAGE }}
 
@@ -69,16 +68,16 @@ jobs:
     needs: build-and-push
     runs-on: self-hosted
     steps:
-      # Checkout code
+      # 1️⃣ Checkout code
       - uses: actions/checkout@v3
 
-      # Authenticate to GCP
+      # 2️⃣ Authenticate to GCP
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      # Get GKE credentials
+      # 3️⃣ Get GKE credentials
       - name: Set up GKE credentials
         uses: google-github-actions/get-gke-credentials@v1
         with:
@@ -86,12 +85,13 @@ jobs:
           location: ${{ env.GKE_CLUSTER_LOCATION }}
           credentials: ${{ secrets.GCP_SA_KEY }}
 
-      # Replace placeholders in deployment.yml
-      - name: Replace image in deployment
-        run: |
-          sed -i "s|\${IMAGE_REPO}/${NAME}:${VERSION}|${{ env.FULL_IMAGE }}|g" ${{ env.K8S_MANIFESTS_PATH }}/deployment.yml
-          cat ${{ env.K8S_MANIFESTS_PATH }}/deployment.yml
-
-      # Apply manifests to GKE
-      - name: Apply Kubernetes manifests
+      # 4️⃣ Apply Kubernetes manifests (only once, to create deployment/service)
+      - name: Apply manifests
         run: kubectl apply -f ${{ env.K8S_MANIFESTS_PATH }} --namespace ${{ env.K8S_NAMESPACE }}
+
+      # 5️⃣ Update deployment image dynamically
+      - name: Update deployment with latest image
+        run: |
+          kubectl set image deployment/${{ env.K8S_DEPLOYMENT_NAME }} \
+            onlinebookstore-container=${{ env.FULL_IMAGE }} \
+            --namespace ${{ env.K8S_NAMESPACE }}
