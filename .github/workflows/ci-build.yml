@@ -62,3 +62,30 @@ jobs:
       - name: Push Docker Image
         run: |
           docker push $IMAGE_REPO/$IMAGE
+
+  deploy:
+    needs: build-and-push
+    runs-on: self-hosted
+    steps:
+      # Checkout repo (needed for YAML files if you have them)
+      - uses: actions/checkout@v3
+
+      # Authenticate to GCP
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      # Set up GKE credentials
+      - name: Set up GKE
+        uses: google-github-actions/get-gke-credentials@v1
+        with:
+          cluster_name: my-gke-cluster       # your cluster name
+          location: asia-south1-a            # zone or region
+          credentials: ${{ secrets.GCP_SA_KEY }}
+
+      # Deploy to Kubernetes
+      - name: Deploy to GKE
+        run: |
+          kubectl apply -f k8s-specifications/
+        
