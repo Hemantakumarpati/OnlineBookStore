@@ -75,13 +75,10 @@ jobs:
           location: ${{ env.GKE_CLUSTER_LOCATION }}
           credentials: ${{ secrets.GCP_SA_KEY }}
 
-      - name: Replace placeholders in deployment.yaml
+      - name: Replace placeholders in deployment.yml
         run: |
-          find ${{ env.K8S_MANIFESTS_PATH }} -type f -name "*.yaml" -exec sed -i \
+          find ${{ env.K8S_MANIFESTS_PATH }} -type f -name "*.yml" -exec sed -i \
           -e "s|\${IMAGE_REPO}/${NAME}:${VERSION}|${{ env.IMAGE_REPO }}/${{ env.NAME }}:${{ env.VERSION }}|g" {} \;
 
       - name: Apply manifests
         run: kubectl apply -f ${{ env.K8S_MANIFESTS_PATH }} --namespace ${{ env.K8S_NAMESPACE }}
-
-      - name: Wait for rollout
-        run: kubectl rollout status deployment/${{ env.NAME }} --namespace ${{ env.K8S_NAMESPACE }}
