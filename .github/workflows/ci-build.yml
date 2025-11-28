@@ -76,13 +76,6 @@ jobs:
     env:
       FULL_IMAGE: ${{ needs.build-and-push.outputs.FULL_IMAGE }}
       VERSION: ${{ needs.build-and-push.outputs.VERSION }}
-      NAME: ${{ env.NAME }}
-      IMAGE_REPO: ${{ env.IMAGE_REPO }}
-      GKE_CLUSTER_NAME: ${{ env.GKE_CLUSTER_NAME }}
-      GKE_CLUSTER_LOCATION: ${{ env.GKE_CLUSTER_LOCATION }}
-      K8S_DEPLOYMENT_NAME: ${{ env.K8S_DEPLOYMENT_NAME }}
-      K8S_NAMESPACE: ${{ env.K8S_NAMESPACE }}
-      K8S_MANIFESTS_PATH: ${{ env.K8S_MANIFESTS_PATH }}
     steps:
       # Checkout repo
       - uses: actions/checkout@v3
