@@ -32,11 +32,15 @@ jobs:
           BUILD_ID=${GITHUB_RUN_NUMBER}
           SHORT_SHA=${GITHUB_SHA::7}
           VERSION="${BUILD_ID}-${SHORT_SHA}"
-          FULL_IMAGE="${IMAGE_REPO}/${NAME}:${VERSION}"
+          FULL_IMAGE="${{ env.IMAGE_REPO }}/${{ env.NAME }}:${VERSION}"
+          
+          echo "Debug: Computed FULL_IMAGE=$FULL_IMAGE"
+          
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "FULL_IMAGE=$FULL_IMAGE" >> $GITHUB_ENV
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-          echo "FULL_IMAGE=$FULL_IMAGE" >> $GITHUB_OUTPUT
+          
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "FULL_IMAGE=$FULL_IMAGE" >> "$GITHUB_OUTPUT"
 
       # Setup Java
       - name: Set up Java
