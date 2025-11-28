@@ -4,20 +4,20 @@ on:
   push:
     branches:
       - master
-
+env:
+    NAME: onlinebookstore
+    IMAGE_REPO: hemantakumarpati
+    IMAGE_URL: hub.docker.com
+    GKE_CLUSTER_NAME: my-gke-cluster
+    GKE_CLUSTER_LOCATION: asia-south1-a
+    K8S_DEPLOYMENT_NAME: onlinebookstore
+    K8S_NAMESPACE: default
+    K8S_MANIFESTS_PATH: k8s-specifications/
 jobs:
   build-and-push:
     runs-on: self-hosted
 
-    env:
-      NAME: onlinebookstore
-      IMAGE_REPO: hemantakumarpati
-      IMAGE_URL: hub.docker.com
-      GKE_CLUSTER_NAME: my-gke-cluster
-      GKE_CLUSTER_LOCATION: asia-south1-a
-      K8S_DEPLOYMENT_NAME: onlinebookstore
-      K8S_NAMESPACE: default
-      K8S_MANIFESTS_PATH: k8s-specifications/
+
 
     steps:
       # Checkout Code  
