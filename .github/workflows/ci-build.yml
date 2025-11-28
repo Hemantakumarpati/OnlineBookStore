@@ -11,8 +11,6 @@ jobs:
 
     env:
       NAME: onlinebookstore
-      VERSION: ${{ github.run_number }}-${{ github.sha }}
-      IMAGE: ${{ env.NAME }}:${{ env.VERSION }}
       IMAGE_REPO: hemantakumarpati
       IMAGE_URL: hub.docker.com
       GKE_CLUSTER_NAME: my-gke-cluster
@@ -22,12 +20,11 @@ jobs:
       K8S_MANIFESTS_PATH: k8s-specifications/
 
     steps:
-
       # Checkout Code  
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Set VERSION (BUILD_ID + short SHA)
+      # Set VERSION and IMAGE
       - name: Set image version
         id: vars
         run: |
@@ -37,45 +34,43 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "IMAGE=${{ env.NAME }}:$VERSION" >> $GITHUB_ENV
 
-      # Install Java (required for Maven) 
+      # Set up Java
       - name: Set up Java
         uses: actions/setup-java@v3
         with:
           distribution: temurin
           java-version: '17'
 
-      # Install Maven (needed for mvn package)
+      # Install Maven
       - name: Install Maven
         run: |
           sudo apt update
           sudo apt install -y maven
 
-      # Build WAR file
+      # Build WAR
       - name: Build WAR
         run: mvn clean package
 
-      # Login to Docker Hub
+      # Docker login
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Build Docker Image 
+      # Build Docker image
       - name: Build Docker Image
-        run: |
-          docker build -t $IMAGE_REPO/$IMAGE .
+        run: docker build -t $IMAGE_REPO/$IMAGE .
 
-      # Push Docker Image
+      # Push Docker image
       - name: Push Docker Image
-        run: |
-          docker push $IMAGE_REPO/$IMAGE
+        run: docker push $IMAGE_REPO/$IMAGE
 
   deploy:
     needs: build-and-push
     runs-on: self-hosted
     steps:
-      # Checkout repo (needed for YAML files if you have them)
+      # Checkout repo
       - uses: actions/checkout@v3
 
       # Authenticate to GCP
@@ -84,19 +79,20 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      # Set up GKE credentials
+      # Get GKE credentials
       - name: Set up GKE
         uses: google-github-actions/get-gke-credentials@v1
         with:
-          cluster_name: my-gke-cluster       # your cluster name
-          location: asia-south1-a            # zone or region
+          cluster_name: ${{ env.GKE_CLUSTER_NAME }}
+          location: ${{ env.GKE_CLUSTER_LOCATION }}
           credentials: ${{ secrets.GCP_SA_KEY }}
 
+      # Update deployment image
       - name: Update deployment image
         run: |
-           kubectl set image deployment/${{ env.K8S_DEPLOYMENT_NAME }} \
-             ${{ env.NAME }}=${{ env.IMAGE_REPO }}/${{ env.IMAGE }}
+          kubectl set image deployment/${{ env.K8S_DEPLOYMENT_NAME }} \
+            ${{ env.NAME }}=${{ env.IMAGE_REPO }}/${{ env.IMAGE }} --namespace ${{ env.K8S_NAMESPACE }}
 
+      # Apply Kubernetes manifests
       - name: Apply manifests
-        run: kubectl apply -f ${{ env.K8S_MANIFESTS_PATH }}
-        
+        run: kubectl apply -f ${{ env.K8S_MANIFESTS_PATH }} --namespace ${{ env.K8S_NAMESPACE }}
