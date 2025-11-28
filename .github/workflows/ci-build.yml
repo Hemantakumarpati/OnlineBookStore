@@ -86,6 +86,9 @@ jobs:
           cluster_name: ${{ env.GKE_CLUSTER_NAME }}
           location: ${{ env.GKE_CLUSTER_LOCATION }}
           credentials: ${{ secrets.GCP_SA_KEY }}
+      # Apply Kubernetes manifests
+      - name: Apply manifests
+        run: kubectl apply -f ${{ env.K8S_MANIFESTS_PATH }} --namespace ${{ env.K8S_NAMESPACE }}          
 
       # Update deployment image
       - name: Update deployment image
@@ -93,6 +96,4 @@ jobs:
           kubectl set image deployment/${{ env.K8S_DEPLOYMENT_NAME }} \
             ${{ env.NAME }}=${{ env.IMAGE_REPO }}/${{ env.IMAGE }} --namespace ${{ env.K8S_NAMESPACE }}
 
-      # Apply Kubernetes manifests
-      - name: Apply manifests
-        run: kubectl apply -f ${{ env.K8S_MANIFESTS_PATH }} --namespace ${{ env.K8S_NAMESPACE }}
+
