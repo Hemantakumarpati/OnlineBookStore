@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: onlinebookstore
+  labels:
+    app: onlinebookstore
 spec:
   replicas: 2
   selector:
@@ -13,16 +15,16 @@ spec:
         app: onlinebookstore
     spec:
       containers:
-      - name: onlinebookstore-container
-        # image: ${IMAGE_URL}/${IMAGE_REPO}/${NAME}:${VERSION}
-        image: ${IMAGE_REPO}/${NAME}:${VERSION}
-        imagePullPolicy: Always
-        resources:
-          requests:
-            cpu: 100m
-            memory: 128Mi
-          limits:
-            cpu: 250m
-            memory: 256Mi
-        ports:
-        - containerPort: 80
+        - name: onlinebookstore-container
+          # Placeholder for GitHub Actions to replace
+          image: ${IMAGE_REPO}/${NAME}:${VERSION}
+          imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+          ports:
+            - containerPort: 80
