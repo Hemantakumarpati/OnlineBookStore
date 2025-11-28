@@ -17,6 +17,9 @@ env:
 jobs:
   build-and-push:
     runs-on: self-hosted
+    outputs:
+      FULL_IMAGE: ${{ steps.set-vars.outputs.FULL_IMAGE }}
+      VERSION: ${{ steps.set-vars.outputs.VERSION }}
     steps:
       # 1️⃣ Checkout code
       - name: Checkout repository
@@ -24,13 +27,16 @@ jobs:
 
       # 2️⃣ Set image version
       - name: Set image version
-        id: vars
+        id: set-vars
         run: |
           BUILD_ID=${GITHUB_RUN_NUMBER}
           SHORT_SHA=${GITHUB_SHA::7}
           VERSION="${BUILD_ID}-${SHORT_SHA}"
+          FULL_IMAGE="${IMAGE_REPO}/${NAME}:${VERSION}"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "FULL_IMAGE=${{ env.IMAGE_REPO }}/${{ env.NAME }}:$VERSION" >> $GITHUB_ENV
+          echo "FULL_IMAGE=$FULL_IMAGE" >> $GITHUB_ENV
+          echo "::set-output name=VERSION::$VERSION"
+          echo "::set-output name=FULL_IMAGE::$FULL_IMAGE"
 
       # 3️⃣ Setup Java
       - name: Set up Java
@@ -67,8 +73,18 @@ jobs:
   deploy:
     needs: build-and-push
     runs-on: self-hosted
+    env:
+      FULL_IMAGE: ${{ needs.build-and-push.outputs.FULL_IMAGE }}
+      VERSION: ${{ needs.build-and-push.outputs.VERSION }}
+      NAME: ${{ env.NAME }}
+      IMAGE_REPO: ${{ env.IMAGE_REPO }}
+      GKE_CLUSTER_NAME: ${{ env.GKE_CLUSTER_NAME }}
+      GKE_CLUSTER_LOCATION: ${{ env.GKE_CLUSTER_LOCATION }}
+      K8S_DEPLOYMENT_NAME: ${{ env.K8S_DEPLOYMENT_NAME }}
+      K8S_NAMESPACE: ${{ env.K8S_NAMESPACE }}
+      K8S_MANIFESTS_PATH: ${{ env.K8S_MANIFESTS_PATH }}
     steps:
-      # 1️⃣ Checkout code
+      # 1️⃣ Checkout repo
       - uses: actions/checkout@v3
 
       # 2️⃣ Authenticate to GCP
@@ -85,13 +101,14 @@ jobs:
           location: ${{ env.GKE_CLUSTER_LOCATION }}
           credentials: ${{ secrets.GCP_SA_KEY }}
 
-      # 4️⃣ Apply Kubernetes manifests (only once, to create deployment/service)
+      # 4️⃣ Apply manifests (creates deployment/service initially)
       - name: Apply manifests
         run: kubectl apply -f ${{ env.K8S_MANIFESTS_PATH }} --namespace ${{ env.K8S_NAMESPACE }}
 
-      # 5️⃣ Update deployment image dynamically
-      - name: Update deployment with latest image
+      # 5️⃣ Update deployment with the latest image
+      - name: Update deployment image
         run: |
+          echo "Deploying image: $FULL_IMAGE"
           kubectl set image deployment/${{ env.K8S_DEPLOYMENT_NAME }} \
-            onlinebookstore-container=${{ env.FULL_IMAGE }} \
-            --namespace ${{ env.K8S_NAMESPACE }}
+            onlinebookstore-container=$FULL_IMAGE \
+            --namespace ${{ env.K8S_NAMESPACE }}     
