@@ -16,16 +16,7 @@ spec:
     spec:
       containers:
         - name: onlinebookstore-container
-          # Placeholder for GitHub Actions to replace
-          # image: ${IMAGE_REPO}/${NAME}:${VERSION}
-          image: hemantakumarpati/onlinebookstore:20-517f393
+          image: ${IMAGE_REPO}/${NAME}:${VERSION}   # <- placeholder to be replaced
           imagePullPolicy: Always
-          resources:
-            requests:
-              cpu: 100m
-              memory: 128Mi
-            limits:
-              cpu: 250m
-              memory: 256Mi
           ports:
             - containerPort: 80
