@@ -88,4 +88,5 @@ jobs:
       - name: Deploy to GKE
         run: |
           kubectl apply -f k8s-specifications/
+          kubectl set image deployments/onlinebookstore onlinebookstore-container=${IMAGE_REPO}/${NAME}:${VERSION}
         
